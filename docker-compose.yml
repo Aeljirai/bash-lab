@@ -1,0 +1,14 @@
+services:
+  processor:
+    build: .
+    volumes:
+      - .:/app
+
+  viewer:
+    image: nginx:alpine
+    volumes:
+      - ./viewer:/usr/share/nginx/viewer:ro # index.html lives here
+      - ./result:/usr/share/nginx/result:ro # processor writes report.csv here
+      - ./viewer.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "8080:80"
