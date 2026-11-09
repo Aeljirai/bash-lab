@@ -91,6 +91,8 @@ docker compose down                # stop everything
    - **Invalid file:** it is moved to `errors/` and an `ERROR` line is logged.
 5. **Done.** Writes `job finished` to the log.
 
+**About the `id` column:** `ID` counts the files processed within one run and starts again at 1 on the next run. This is on purpose. Each time `id` goes back to 1 in `report.csv`, a new run has added new CSV files, so you can see where each batch starts.
+
 Each loop of `[ -e "$f" ] || continue` guards against an empty folder. Without it, Bash would try to process the literal pattern `input/*.csv`.
 
 ### Expected input format
@@ -110,7 +112,10 @@ id,date,city,sum
 1,2026-11-09,Agadir,1782.00
 2,2026-11-09,Casablanca,3058.50
 3,2026-11-09,Tanger,2939.80
+1,2026-11-10,Rabat,2145.00
 ```
+
+The last line came from a later run, so its `id` starts again at 1.
 
 `logs/run_2026-11-09.log`
 
@@ -169,6 +174,5 @@ Nothing has been processed yet. `result/report.csv` only appears after the first
 
 ## Known limitations
 
-- **IDs restart at 1 on every run.** `ID` is a counter inside the script, so files processed in separate passes can end up with the same `id`. A fix is to start from the last ID already in the report, for example `ID=$(tail -n +2 result/report.csv | wc -l)`.
 - **Only one copy of the script should run at a time.** If you run it on the host while the container is also running, both can pick up the same file. One copy then archives the file, and the other logs a false error because the file is already gone. Use `flock` if you need to guard against this.
 - **The city comes from the first data row only.** Each input file should contain a single city.
